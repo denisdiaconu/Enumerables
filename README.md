@@ -4,7 +4,7 @@
 
 ![screenshot](https://github.com/denisdiaconu/Enumerables/blob/test/image/2021-02-11%20(1).png)
 
-This is an recreation of Enumerables methods using ruby. The following methods were used:
+This is a recreation of Enumerable methods using ruby. The following methods were used:
 - #my_each
 - #my_each_with_index
 - #my_select
