@@ -1,39 +1,67 @@
-module Enumerables
-  def my_each
+module Enumerable
+  def my_each(block = nil)
     k = 0
-    length.times do
-      yield(self[k]) if block_given?
-      k += 1
+    if block_given?
+      length.times do
+        if !block.nil?
+          block.call(self[k])
+        else
+          yield(self[k])
+        end
+        k += 1
+      end
+    else
+      self
     end
-    self
   end
 
-  def my_each_with_index
+  def my_each_with_index(block = nil)
     k = 0
-    length.times do
-      yield(self[k], k)
-      k += 1
+    if block_given?
+      length.times do
+        if !block.nil?
+          block.call(self[k], k)
+        else
+          yield(self[k], k)
+        end
+        k += 1
+      end
+    else
+      self
     end
-    self
   end
 
-  def my_select
-    return to_enum(:my_each) unless block_given?
-
-    arr = []
-    length.times do |k|
-      arr << self[k] if yield(self[k])
+  def my_select(block = nil)
+    k = 0
+    if block_given?
+      length.times do
+        if !block.nil?
+          print self[k] if block.call(self[k])
+        elsif yield(self[k])
+          print self[k]
+        end
+        k += 1
+      end
+    else
+      my_each
     end
-    print arr
   end
 
-  def my_all
+  def my_all(_block = nil)
     stat = true
     i = 0
     if block_given?
       length.times do
         stat = false unless yield(self[i])
         i += 1
+      end
+    else
+      length.times do
+        begin
+          stat = false if self[i].is_a?
+        rescue StandardError
+          stat = false if self[i].scan
+        end
       end
     end
     stat
@@ -49,17 +77,29 @@ module Enumerables
     stat
   end
 
-  def my_none
+  def my_none(_block = nil)
     stat = false
+    stat = true if length.zero?
     i = 0
     if block_given?
       length.times do
         stat = true unless yield (self[i])
         i += 1
       end
+    elsif !match.nil?
+      length.times do
+        begin
+          stat = true if self[i].is_a?
+        rescue StandardError
+          stat = true if self[i].scan
+        end
+        i += 1
+      end
     else
       length.times do
         return true if self[i] == true
+
+        i += 1
       end
     end
     stat
@@ -78,14 +118,14 @@ module Enumerables
   def my_map(block = nil)
     i = 0
     final = []
-    if block_given?
-      length.times do
-        final.push(yield self[i])
-        i += 1
-      end
-    elsif !block.nil?
+    if !block.nil?
       length.times do
         final.push(block.call(self[i]))
+        i += 1
+      end
+    elsif block_given?
+      length.times do
+        final.push(yield self[i])
         i += 1
       end
     end
