@@ -2,7 +2,7 @@
 
 # Enumerable Method Project
 
-![screenshot]("C:\Users\gigib\Enumerables\Enumerables\image\2021-02-11 (1).png")
+![screenshot](https://github.com/denisdiaconu/Enumerables/blob/test/image/2021-02-11%20(1).png)
 
 This is an recreation of Enumerables methods using ruby. The following methods were used:
 - #my_each
