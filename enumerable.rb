@@ -1,4 +1,4 @@
-module Enumerable
+module Enumerables
   def my_each
     k = 0
     length.times do
@@ -22,7 +22,7 @@ module Enumerable
 
     arr = []
     length.times do |k|
-      arr << self[k] if yield(self[k])  # if yield self[k] is true then put it inside arr
+      arr << self[k] if yield(self[k])
     end
     print arr
   end
