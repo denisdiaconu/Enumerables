@@ -64,9 +64,9 @@ module Enumerable
       elsif block.instance_of?(Regexp)
         return false unless block =~ re
       elsif block.instance_of?(Class)
-        return false unless re.instance_of?(block)
+        return false unless [re.class, re.class.superclass].include?(block)
       elsif !block.nil?
-        return false unless re == pattern
+        return false unless re == block
       else
         return false unless re
       end
@@ -74,63 +74,44 @@ module Enumerable
     true
   end
 
-  def my_any?(match = nil)
-    i = 0
-    arr = to_a
-    stat = false
-    if block_given?
-      arr.length.times do
-        return true if yield(arr[i])
+  def my_any?(block = nil)
+    return false if (self - [nil, false]) == []
 
-        i += 1
-      end
-    elsif !match.nil?
-      arr.length.times do
-        begin
-          stat = true if arr[i].is_a?(match)
-        rescue StandardError
-          stat = true if arr[i].scan(match)
-        end
-      end
-    else
-      arr.length.times do
-        return true if arr[i] != false or !arr[i].nil?
+    my_each do |re|
+      if block_given?
+        return true if yield re
+      elsif block.instance_of?(Regexp)
+        return true if block =~ re
+      elsif block.instance_of?(Class)
+        return true if [re.class, re.class.superclass].include?(block)
+      elsif !block.nil?
+        return true if re == block
+      else
+        return true unless re
       end
     end
-    stat
+    return true if block.nil? && !block_given?
+
+    false
   end
 
   def my_none?(block = nil)
-    stat = false
-    arr = to_a
-    stat = true if arr.length.zero?
-    i = 0
-    if block_given?
-      arr.length.times do
-        stat = true unless yield (arr[i])
-        i += 1
-      end
-    elsif block.is_a? Class
-      my_each { |x| stat = true if x.class.ancestors.include?(block) }
-    elsif block.is_a? Regexp
-      my_each { |x| stat = true if block.match(x) }
-    elsif !block.nil?
-      arr.length.times do
-        begin
-          stat = true if arr[i].is_a?(block)
-        rescue StandardError
-          stat = true if arr[i].scan(block)
-        end
-        i += 1
-      end
-    else
-      arr.length.times do
-        return true if arr[i] == true or arr[i].nil?
+    return true if (self - [nil, false]) == []
 
-        i += 1
+    my_each_with_index do |re, i|
+      if block_given?
+        return false if yield re
+      elsif block.instance_of?(Class)
+        return false if [re.class, re.class.superclass].include?(block)
+      elsif block.instance_of?(Regexp)
+        return false if block =~ re
+      elsif !block.nil?
+        return false if re == block
+      elsif i.positive? && self[i] != self[i - 1]
+        return false
       end
     end
-    stat
+    true
   end
 
   def my_count(block = nil)
@@ -186,3 +167,13 @@ end
 def multiply_els(arr)
   arr.my_inject { |x, y| x * y }
 end
+
+
+puts %w{ant bear cat}.my_none? { |word| word.length == 5 } #=> true
+puts %w{ant bear cat}.my_none? { |word| word.length >= 4 } #=> false
+puts %w{ant bear cat}.my_none?(/d/)                        #=> true
+puts [1, 3.14, 42].my_none?(Float)                         #=> false
+puts [].my_none?                                           #=> true
+puts [nil].my_none?                                        #=> true
+puts [nil, false].my_none?                                 #=> true
+puts [nil, false, true].my_none?                           #=> false
