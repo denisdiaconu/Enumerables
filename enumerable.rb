@@ -92,7 +92,7 @@ module Enumerable
 
   def my_none?(block = nil)
     stat = false
-    arr = self.to_a
+    arr = to_a
     stat = true if arr.length.zero?
     i = 0
     if block_given?
