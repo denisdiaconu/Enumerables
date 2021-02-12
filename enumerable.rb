@@ -92,26 +92,27 @@ module Enumerable
 
   def my_none?(block = nil)
     stat = false
-    stat = true if length.zero?
+    arr = self.to_a
+    stat = true if arr.length.zero?
     i = 0
     if block_given?
-      length.times do
-        stat = true unless yield (self[i])
+      arr.length.times do
+        stat = true unless yield (arr[i])
         i += 1
       end
     elsif !block.nil?
-      length.times do
+      arr.length.times do
         begin
-          stat = true if self[i].is_a?(block)
+          stat = true if arr[i].is_a?(block)
         rescue StandardError
-          stat = true if self[i].scan(block)
+          stat = true if arr[i].scan(block)
         end
         i += 1
       end
     else
       length.times do
-        return true if self[i] == true
-        return true if self[i] == self[i].nil?
+        return true if arr[i] == true
+        return true if arr[i] == self[i].nil?
 
         i += 1
       end
