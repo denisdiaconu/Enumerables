@@ -175,9 +175,3 @@ end
 def multiply_els(arr)
   arr.my_inject { |x, y| x * y }
 end
-
-testarray = (2..9)
-
-
-### my_all
-puts testarray.my_none { |n| n < 20 }
