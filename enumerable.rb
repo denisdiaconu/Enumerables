@@ -1,83 +1,96 @@
 module Enumerable
-  def my_each(block = nil)
-    k = 0
-    if block_given?
-      length.times do
-        if !block.nil?
-          block.call(self[k])
-        else
-          yield(self[k])
-        end
-        k += 1
-      end
-    else
-      self
+  def my_each(&block)
+    return to_enum(:my_each) unless block_given?
+
+    if is_a? Range
+      k = 0
+      each(&block)
+      return self
     end
+    k = 0
+    length.times do
+      yield(self[k])
+      k += 1
+    end
+    self
   end
 
   def my_each_with_index(block = nil)
+    return to_enum(:my_each_with_index) unless block_given?
+
     k = 0
-    if block_given?
-      length.times do
+    if is_a? Range
+      k = 0
+      each do |i|
         if !block.nil?
-          block.call(self[k], k)
+          block.call(i, k)
         else
-          yield(self[k], k)
+          yield(i, k)
         end
         k += 1
       end
-    else
-      self
+      return self
+    end
+    length.times do
+      if !block.nil?
+        block.call(self[k], k)
+      else
+        yield(self[k], k)
+      end
+      k += 1
     end
   end
 
-  def my_select(block = nil)
+  def my_select
+    return to_enum(:my_select) unless block_given?
+
+    final = []
+    num = [Hash, Range].member?(self.class) ? to_a : self
     k = 0
-    if block_given?
-      length.times do
-        if !block.nil?
-          print self[k] if block.call(self[k])
-        elsif yield(self[k])
-          print self[k]
-        end
-        k += 1
-      end
-    else
-      my_each
+    count do
+      final << num[k] if yield(num[k])
+      k += 1
     end
+    final
   end
 
-  def my_all(_block = nil)
-    stat = true
-    i = 0
-    if block_given?
-      length.times do
-        stat = false unless yield(self[i])
-        i += 1
-      end
-    else
-      length.times do
-        begin
-          stat = false if self[i].is_a?
-        rescue StandardError
-          stat = false if self[i].scan
-        end
+  def my_all?(block = nil)
+    my_each do |rep|
+      if block_given?
+        return false unless yield rep
+      elsif block.instance_of?(Class)
+        return false unless rep.instance_of?(block)
+      elsif !block.nil?
+        return false unless rep == block
+      elsif block.instance_of?(Regexp)
+        return false unless block =~ rep
+      else
+        return false unless rep
       end
     end
-    stat
+    true
   end
 
-  def my_any
-    stat = false
-    return stat if length.zero?
-
-    each do |k|
-      stat = true if yield(self[k])
+  def my_any?(block = nil)
+    my_each do |rep|
+      if block_given?
+        return true if yield rep
+      elsif !block.nil?
+        return true if rep == block
+      elsif block.instance_of?(Class)
+        return true if rep.instance_of?(block)
+      elsif block.instance_of?(Regexp)
+        return true if block =~ rep
+      else
+        return true unless rep
+      end
     end
-    stat
+    return true if block.nil? && !block_given?
+
+    false
   end
 
-  def my_none(_block = nil)
+  def my_none?(block = nil)
     stat = false
     stat = true if length.zero?
     i = 0
@@ -86,18 +99,19 @@ module Enumerable
         stat = true unless yield (self[i])
         i += 1
       end
-    elsif !match.nil?
+    elsif !block.nil?
       length.times do
         begin
-          stat = true if self[i].is_a?
+          stat = true if self[i].is_a?(block)
         rescue StandardError
-          stat = true if self[i].scan
+          stat = true if self[i].scan(block)
         end
         i += 1
       end
     else
       length.times do
         return true if self[i] == true
+        return true if self[i] == self[i].nil?
 
         i += 1
       end
@@ -109,6 +123,8 @@ module Enumerable
     num = 0
     if block_given?
       my_each { |i| num += 1 if yield(i) }
+    elsif !num.nil?
+      my_each { |i| num += 1 if i == num }
     else
       num = num.length
     end
@@ -116,35 +132,52 @@ module Enumerable
   end
 
   def my_map(block = nil)
-    i = 0
-    final = []
+    arr1 = []
+    arr2 = []
+    x = 0
+    arr2 = if arr2 == to_a
+             self
+           else
+             to_a
+           end
     if !block.nil?
-      length.times do
-        final.push(block.call(self[i]))
-        i += 1
+      arr2.my_each do
+        arr1.push(block.call(arr2[x]))
+        x += 1
       end
-    elsif block_given?
-      length.times do
-        final.push(yield self[i])
-        i += 1
+    else
+      arr2.my_each do
+        arr1.push(yield(arr2[x]))
+        x += 1
       end
     end
-    final
+    arr1
   end
 
-  def my_inject
-    sum = 1
-    i = 0
-    if block_given?
-      length.times do
-        sum = yield(sum, self[i])
-        i += 1
+  def my_inject(block = nil)
+    arr2 = if arr2 == to_a
+             self
+           else
+             to_a
+           end
+    if !block.nil?
+      arr2.my_inject { |addi, x| addi + x }
+    elsif block_given?
+      add = arr2[0]
+      arr2.my_each_with_index do |x, i|
+        add = yield(add, x) if i != 0
       end
+      add
     end
-    sum
   end
 end
 
 def multiply_els(arr)
   arr.my_inject { |x, y| x * y }
 end
+
+testarray = (2..9)
+
+
+### my_all
+puts testarray.my_none { |n| n < 20 }
