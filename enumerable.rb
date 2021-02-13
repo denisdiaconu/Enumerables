@@ -1,6 +1,7 @@
 module Enumerable
   def my_each(&block)
     return to_enum(:my_each) unless block_given?
+
     arr = [Hash, Range].member?(self.class) ? to_a.flatten : self
     if is_a? Range
       k = 0
@@ -17,6 +18,7 @@ module Enumerable
 
   def my_each_with_index(block = nil)
     return to_enum(:my_each_with_index) unless block_given?
+
     arr = [Hash, Range].member?(self.class) ? to_a.flatten : self
     k = 0
     if is_a? Range
