@@ -63,7 +63,7 @@ module Enumerable
       elsif block.instance_of?(Class)
         return true if [re.class, re.class.superclass].include?(block)
       elsif !block.nil?
-        return true if !x.nil? && x != false
+        return true if !re.nil? && re != false
       else
         return true unless re
       end
