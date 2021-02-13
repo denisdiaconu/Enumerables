@@ -1,23 +1,42 @@
 module Enumerable
-  def my_each
+  def my_each(&block)
     return to_enum(:my_each) unless block_given?
-
     arr = [Hash, Range].member?(self.class) ? to_a.flatten : self
+    if is_a? Range
+      k = 0
+      arr.each(&block)
+      return self
+    end
     k = 0
-    while k < arr.length
-      yield(arr[i])
+    arr.length.times do
+      yield(arr[k])
       k += 1
     end
     self
   end
 
-  def my_each_with_index
+  def my_each_with_index(block = nil)
     return to_enum(:my_each_with_index) unless block_given?
-
     arr = [Hash, Range].member?(self.class) ? to_a.flatten : self
     k = 0
-    while k < arr.length
-      yield(arr[k], k) if arr[k].is_a? Integer
+    if is_a? Range
+      k = 0
+      arr.each do |i|
+        if !block.nil?
+          block.call(i, k)
+        else
+          yield(i, k)
+        end
+        k += 1
+      end
+      return self
+    end
+    arr.length.times do
+      if !block.nil?
+        block.call(arr[k], k)
+      else
+        yield(arr[k], k)
+      end
       k += 1
     end
     self
@@ -109,8 +128,6 @@ module Enumerable
     arr1 = []
     arr2 = []
     x = 0
-    return to_enum(:my_each) unless block_given?
-
     arr2 = if respond_to?(:to_ary)
              self
            else
@@ -135,7 +152,6 @@ module Enumerable
       sym = arg
       arg = nil
     end
-
     if !block_given? && !sym.nil?
       my_each { |s| arg = arg.nil? ? s : arg.send(sym, s) }
     else
