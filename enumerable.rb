@@ -1,44 +1,23 @@
 module Enumerable
-  def my_each(&block)
+  def my_each
     return to_enum(:my_each) unless block_given?
 
     arr = [Hash, Range].member?(self.class) ? to_a.flatten : self
-    if is_a? Range
-      k = 0
-      arr.each(&block)
-      return self
-    end
     k = 0
-    arr.length.times do
-      yield(arr[k])
+    while k < arr.length
+      yield(arr[i])
       k += 1
     end
     self
   end
 
-  def my_each_with_index(block = nil)
+  def my_each_with_index
     return to_enum(:my_each_with_index) unless block_given?
 
     arr = [Hash, Range].member?(self.class) ? to_a.flatten : self
     k = 0
-    if is_a? Range
-      k = 0
-      arr.each do |i|
-        if !block.nil?
-          block.call(i, k)
-        else
-          yield(i, k)
-        end
-        k += 1
-      end
-      return self
-    end
-    arr.length.times do
-      if !block.nil?
-        block.call(arr[k], k)
-      else
-        yield(arr[k], k)
-      end
+    while k < arr.length
+      yield(arr[k], k) if arr[k].is_a? Integer
       k += 1
     end
     self
@@ -85,7 +64,7 @@ module Enumerable
       elsif block.instance_of?(Class)
         return true if [re.class, re.class.superclass].include?(block)
       elsif !block.nil?
-        return true if re == block
+        return true if !x.nil? && x != false
       else
         return true unless re
       end
@@ -96,7 +75,7 @@ module Enumerable
   end
 
   def my_none?(block = nil)
-    return true if (self - [nil, false]) == []
+    return true if (self - [nil, false]) == [] || length < 2
 
     my_each_with_index do |re, i|
       if block_given?
@@ -130,6 +109,8 @@ module Enumerable
     arr1 = []
     arr2 = []
     x = 0
+    return to_enum(:my_each) unless block_given?
+
     arr2 = if respond_to?(:to_ary)
              self
            else
