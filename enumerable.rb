@@ -63,7 +63,11 @@ module Enumerable
       elsif block.instance_of?(Class)
         return true if [re.class, re.class.superclass].include?(block)
       elsif !block.nil?
-        return true if !re.nil? && re != false
+        my_boolean = false
+        arr.each do |i|
+          my_boolean = true if i == block
+        end
+        return my_boolean
       else
         return true unless re
       end
